@@ -1,0 +1,11 @@
+
+
+Comunicación entre procesos:
+- PIPES (Tubería). Para leer los PIPEs, tener la librería "<unistd.h>"
+
+	fd[0] -> read / fd[1] -> write
+
+	int read( int fd, void *buf, int count);
+	int write ( int fd, void *buf, int count);
+
+	Para escribir, abrimos con fd[0] y cerramos con fd[1]. Para leer sería lo contrario
