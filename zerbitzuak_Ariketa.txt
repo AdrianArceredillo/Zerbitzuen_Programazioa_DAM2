@@ -1,0 +1,112 @@
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <signal.h>
+#include <time.h>
+
+int main(int argc, char *argv[])
+{
+    int fd0[2], fd1[2], fd2[2], fd3[2];
+    /*double*/ int kontua = 10000, dirua = 0;
+    int sumaS1 = 0; // suma del dinero SACADO
+    int sumaS2 = 0; // suma del dinero METIDO
+    int aukera = -1;
+
+    pid_t pidS1, pidS2, pidAita;
+    pipe(fd0); // se crea el pipe
+    pipe(fd1); // se crea el pipe
+    pipe(fd2); // se crea el pipe
+    pipe(fd3); // se crea el pipe
+    pidS1 = fork();
+
+    if (pidS1 == -1)
+    {
+        printf("Error al crear el primer hijo");
+        exit(-1);
+    }
+    else if (pidS1 == 0)
+    { // pidS1
+        while (1)
+        {
+            close(fd2[0]);
+            close(fd2[1]);
+            // leer la cantidad sacada
+            int kantitatea = 0;
+            read(fd2[0], &kantitatea, sizeof(kantitatea));
+            // suma el valor leído a la cantidad total sacada (sumaS1)
+            sumaS1 += kantitatea;
+            // enviar al padre la cantidad total sacada
+            write(fd3[1], &sumaS1, sizeof(sumaS1));
+        }
+    }
+    else
+    {
+        pidS2 = fork(); // crear el segundo hijo
+        if (pidS2 == -1)
+        {
+            printf("Error al crear el segundo hijo");
+            exit(-1);
+        }
+        else if (pidS2 == 0)
+        { // Seme2
+        }
+        else
+        { // Aita
+            while (aukera != 0)
+            {
+                printf("\nMENUA\n");
+                printf("------------\n");
+                printf("1.Dirua atera: \n");
+                printf("2.Dirua sartu: \n");
+                printf("3.Egungo egoera\n");
+                printf("0.irsten\n");
+                printf("--------------\n");
+                printf("Sartu zenbaki bat: ");
+                scanf("%d", &aukera);
+
+                switch (aukera)
+                {
+                case 1:
+                    // Dirua atera
+                    int ateratzekoDirua = 0;
+                    printf("\nZenbat diru atera nahi duzu: ");
+                    scanf("%d", &ateratzekoDirua);
+
+                    if (kontua >= ateratzekoDirua)
+                    {
+                        kontua -= ateratzekoDirua;
+
+                        write(fd0[1], &ateratzekoDirua, sizeof(ateratzekoDirua));
+                        break;
+                    }
+                    //break;
+                case 2:
+                    // Dirua sartu
+                    int sartzekoDirua = 0;
+                    printf("\nZenbat diru sartu nahi duzu: ");
+                    scanf("%d", &sartzekoDirua);
+
+                    kontua += sartzekoDirua;
+                    write(fd2[1], &sartzekoDirua, sizeof(sartzekoDirua));
+                    break;
+                case 3:
+                    // kontuaren egungo egoera
+                    printf("\nBankuan dagoen dirua guztira: %d\n", kontua);
+                    int ateratakoKantitatea = 0;
+                    int sarturikoKantitatea = 0;
+                    read(fd0[0], &ateratakoKantitatea, sizeof(ateratakoKantitatea));
+                    read(fd2[0], &sarturikoKantitatea, sizeof(sarturikoKantitatea));
+                    printf("Ateratako diru guztia: %d\n", ateratakoKantitatea);
+                    printf("Sarturiko diru guztia: %d\n", sarturikoKantitatea);
+                    break;
+                case 0:
+                    // Irten
+                    break;
+                }
+            }
+        }
+    }
+
+    
+}
